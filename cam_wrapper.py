@@ -104,7 +104,7 @@ def spool_check(spool, get_fname : callable):
 
 
 @contextmanager 
-def set_acquisition(acq_mode, trig_mode, kcc, exposure_time=1e-3, num_kin=1, read_mode=4):
+def set_acquisition(acq_mode, trig_mode, kcc=0, exposure_time=1e-3, num_kin=1, read_mode=4, emccd_gain=0):
     try: 
         assert GetStatus()[0] == 20073
         SetAcquisitionMode(acq_mode)# run until abort
@@ -113,6 +113,7 @@ def set_acquisition(acq_mode, trig_mode, kcc, exposure_time=1e-3, num_kin=1, rea
         SetExposureTime(exposure_time)  # exposure time
         SetKineticCycleTime(kcc)
         SetNumberKinetics(num_kin)
+        SetEMCCDGain(emccd_gain)
         # TTL high, Perm Open, close, open, Perm open (Ext)
         SetShutterEx(1, 1, 0, 0, 1)
         yield
@@ -126,7 +127,7 @@ def set_acquisition(acq_mode, trig_mode, kcc, exposure_time=1e-3, num_kin=1, rea
 async def real_time(spool=False, get_fname=None):
     if not spool_check(spool, get_fname):
         return 
-    with set_acquisition(5, 0, 0.055):
+    with set_acquisition(5, 0):
         StartAcquisition()
         while True:
             await fast_get()
@@ -136,13 +137,14 @@ async def real_time(spool=False, get_fname=None):
 async def external_trig(spool=False, get_fname=None):
     if not spool_check(spool, get_fname):
         return 
-    with set_acquisition(5, 1, 0):
+    with set_acquisition(5, 1):
         StartAcquisition()
         while True:
             await wait_acq()
 
 
-async def external_start(spool=False, get_fname=None, num_kin=2):
+async def external_start(spool=False, get_fname=None):
+    num_kin = 2
     with set_acquisition(3, 6, 0.05, 1e-3, num_kin):
         while True:
             if not spool_check(spool, get_fname):

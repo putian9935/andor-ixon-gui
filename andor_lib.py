@@ -7,6 +7,7 @@ wdll = CDLL(r"C:\Program Files\Andor SOLIS\atmcd64d_legacy.dll")
 # wdll = CDLL(r"./atmcd64d_legacy_old.dll")
 SUCCESS = 20002
 
+
 def _GetAvailableCamera():
     f = wdll.GetAvailableCameras
     f.argtypes = [POINTER(c_long)]
@@ -291,6 +292,7 @@ def _SetPreAmpGain():
         return err
     return ret
 
+
 def _GetRegisterDump():
     f = wdll.GetRegisterDump
     f.argtypes = [POINTER(c_int)]
@@ -302,6 +304,7 @@ def _GetRegisterDump():
         return mode.value, err
     return ret
 
+
 def _SetRegisterDump():
     f = wdll.SetRegisterDump
     f.argtypes = [c_int]
@@ -312,6 +315,7 @@ def _SetRegisterDump():
         return err
     return ret
 
+
 def _SetReadoutRegisterPacking():
     f = wdll.SetReadoutRegisterPacking
     f.argtypes = [c_int]
@@ -321,6 +325,7 @@ def _SetReadoutRegisterPacking():
         err = f(mode)
         return err
     return ret
+
 
 def _SetAcquisitionMode():
     f = wdll.SetAcquisitionMode
@@ -398,6 +403,7 @@ def _SetKineticCycleTime():
         return err
     return ret
 
+
 def _SetNumberKinetics():
     f = wdll.SetNumberKinetics
     f.argtypes = [c_int]
@@ -439,6 +445,17 @@ def _SetBaselineOffset():
 
     def ret(offset):
         err = f(offset)
+        return err
+    return ret
+
+
+def _SetEMCCDGain():
+    f = wdll.SetEMCCDGain
+    f.argtypes = [c_int]
+    f.restype = c_uint32
+
+    def ret(gain):
+        err = f(gain)
         return err
     return ret
 
@@ -521,9 +538,10 @@ def _GetMostRecentImage16():
     def ret():
         err = f(arr, c_uint(1024 * 1024))
         return img_buf, err
+
     def get_buf():
-        return img_buf 
-    return ret, get_buf  
+        return img_buf
+    return ret, get_buf
 
 
 def _GetMostRecentImage():
@@ -573,7 +591,7 @@ def _GetImages():
 
 def _TurnOnSpool():
     f = wdll.SetSpool
-    f.argtypes = [c_int, c_int,c_char_p, c_int]
+    f.argtypes = [c_int, c_int, c_char_p, c_int]
 
     f.restype = c_uint32
 
@@ -582,15 +600,17 @@ def _TurnOnSpool():
         return err
     return ret
 
+
 def _TurnOffSpool():
     f = wdll.SetSpool
-    f.argtypes = [c_int, c_int,c_char_p, c_int]
+    f.argtypes = [c_int, c_int, c_char_p, c_int]
     f.restype = c_uint32
 
     def ret():
         err = f(0, 0, "".encode(), 10)
         return err
     return ret
+
 
 GetAvailableCamera = _GetAvailableCamera()
 Initialize = _Initialize()
@@ -621,6 +641,8 @@ SetPreAmpGain = _SetPreAmpGain()
 
 SetBaselineClamp = _SetBaselineClamp()
 SetBaselineOffset = _SetBaselineOffset()
+
+SetEMCCDGain = _SetEMCCDGain()
 
 GetRegisterDump = _GetRegisterDump()
 SetRegisterDump = _SetRegisterDump()

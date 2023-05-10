@@ -3,6 +3,7 @@ import asyncio
 from cam_wrapper import init_cam, shutdown_cam, real_time, external_trig, temp_monitor, status_monitor, fps_monitor, plotter, external_start, CamStatus
 from common_feeder import get_name_from_file, get_name_from_time
 
+
 class MyTk(Tk):
     def __init__(self):
         super().__init__()
@@ -36,6 +37,10 @@ class MyTk(Tk):
         self.destroy()
 
 
+modes = {'internal': real_time, 'external': external_trig,
+         'external start': external_start}
+
+
 def draw_tk():
     # Create an instance of Tkinter frame or window
     win = MyTk()
@@ -50,40 +55,27 @@ def draw_tk():
         win.job.cancel()
         enable_spool['state'] = ACTIVE
 
-    def start_internal():
-        stop()
-        enable_spool['state'] = DISABLED
-        if win.spooling.get():
-            win.job = asyncio.create_task(real_time(True, get_name_from_time))
-        else:
-            win.job = asyncio.create_task(real_time())
-        
-    def start_external():
-        stop()
-        enable_spool['state'] = DISABLED
-        if win.spooling.get():
-            win.job = asyncio.create_task(external_trig(True, get_name_from_time))
-        else:
-            win.job = asyncio.create_task(external_trig())
-
-    def start_external_start():
-        stop()
-        enable_spool['state'] = DISABLED
-        if win.spooling.get():
-            win.job = asyncio.create_task(external_start(True, get_name_from_time))
-        else:
-            win.job = asyncio.create_task(external_start())
+    def start(key: str):
+        def ret():
+            stop()
+            enable_spool['state'] = DISABLED
+            if win.spooling.get():
+                win.job = asyncio.create_task(
+                    modes[key](True, get_name_from_time))
+            else:
+                win.job = asyncio.create_task(modes[key]())
+        return ret
 
     # Set title of tkinter frame
     win.title('Andor Camera Terminal')
 
     buttons = [
         Button(win, text='Internal', font=(None, 14),
-               command=start_internal, state=DISABLED),
+               command=start('internal'), state=DISABLED),
         Button(win, text='External', font=(None, 14),
-               command=start_external, state=DISABLED),
+               command=start('external'), state=DISABLED),
         Button(win, text='External start', font=(None, 14),
-               command=start_external_start, state=DISABLED),
+               command=start('external start'), state=DISABLED),
         Button(win, text='Stop', font=(None, 14), command=stop),
     ]
     for i, b in enumerate(buttons):
