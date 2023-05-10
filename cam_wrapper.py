@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from plotter import Plotter
 import traceback
 import asyncio
@@ -7,7 +8,7 @@ from image import *
 import logging
 logging.basicConfig(filename='Example log', level=logging.INFO)
 
-from contextlib import contextmanager 
+from parse_setting import parse_setting
 
 class CamStatus:
     cam_temp = 100
@@ -16,6 +17,9 @@ class CamStatus:
     status = None
     FPS = None
     fname = None
+    exposure_time = None 
+    emccd_gain = None 
+    kinetic_cycle_time = None 
 
 
 setup_backend()
@@ -88,7 +92,8 @@ async def wait_acq():
     GetMostRecentImage16()
     CamStatus.frame_cnt += 1
 
-def spool_check(spool, get_fname : callable):
+
+def spool_check(spool, get_fname: callable):
     if spool:
         if get_fname is None:
             logging.error('fname is None!')
@@ -97,25 +102,28 @@ def spool_check(spool, get_fname : callable):
             fn = get_fname()
         except:
             traceback.print_exc()
-            return 
+            return
         CamStatus.fname = fn
         TurnOnSpool(fn)
-    return True 
+    return True
 
 
-@contextmanager 
-def set_acquisition(acq_mode, trig_mode, kcc=0, exposure_time=1e-3, num_kin=1, read_mode=4, emccd_gain=0):
-    try: 
+@contextmanager
+def set_acquisition(acq_mode, trig_mode, KineticCycleTime=0, ExposureTime=1e-3, NumKinetics=1, ReadMode=4, EMCCDGain=0, ShutterOpenTime=0, ShutterCloseTime=0, **unused_kwargs):
+    try:
         assert GetStatus()[0] == 20073
-        SetAcquisitionMode(acq_mode)# run until abort
-        SetReadMode(read_mode)  # image
+        SetAcquisitionMode(acq_mode)  # run until abort
+        SetReadMode(ReadMode)  # image
         SetTriggerMode(trig_mode)  # internal
-        SetExposureTime(exposure_time)  # exposure time
-        SetKineticCycleTime(kcc)
-        SetNumberKinetics(num_kin)
-        SetEMCCDGain(emccd_gain)
+        SetExposureTime(ExposureTime)  # exposure time
+        SetKineticCycleTime(KineticCycleTime)
+        SetNumberKinetics(NumKinetics)
+        SetEMCCDGain(EMCCDGain)
         # TTL high, Perm Open, close, open, Perm open (Ext)
-        SetShutterEx(1, 1, 0, 0, 1)
+        SetShutterEx(1, 1, ShutterOpenTime, ShutterCloseTime, 1)
+        CamStatus.exposure_time = ExposureTime
+        CamStatus.kinetic_cycle_time = KineticCycleTime
+        CamStatus.emccd_gain = EMCCDGain
         yield
     except asyncio.CancelledError:
         pass
@@ -124,52 +132,53 @@ def set_acquisition(acq_mode, trig_mode, kcc=0, exposure_time=1e-3, num_kin=1, r
     finally:
         AbortAcquisition()
 
+
 async def real_time(spool=False, get_fname=None):
     if not spool_check(spool, get_fname):
-        return 
-    with set_acquisition(5, 0):
+        return
+    with set_acquisition(**parse_setting("camera_setting.yml", 'Internal')):
         StartAcquisition()
         while True:
             await fast_get()
 
 
-
 async def external_trig(spool=False, get_fname=None):
     if not spool_check(spool, get_fname):
-        return 
-    with set_acquisition(5, 1):
+        return
+    with set_acquisition(**parse_setting("camera_setting.yml", 'External')):
         StartAcquisition()
         while True:
             await wait_acq()
 
 
 async def external_start(spool=False, get_fname=None):
-    num_kin = 2
-    with set_acquisition(3, 6, 0.05, 1e-3, num_kin):
+    setting = parse_setting("camera_setting.yml", 'External start')
+    num_kin = setting['NumKinetics']
+    with set_acquisition(**setting):
         while True:
             if not spool_check(spool, get_fname):
                 break
-            assert StartAcquisition() == SUCCESS
+            StartAcquisition()
             for _ in range(num_kin):
                 await wait_acq()
 
 
-def init_cam():
+def init_cam(FanMode=0, Temperature=-60, VSSpeed=1, OutputAmplifier=0, HSSpeed=0, PreAmpGain=1, BaselineClamp=1):
     cam_cnt = GetAvailableCamera()[0]
     if cam_cnt != 1:
         raise ValueError(
             "In correct camera count: cam_cnt != 1. Did you\n1. forget to turn on or connect the camera;\n2. have another Andor software running.")
 
     assert Initialize() == SUCCESS
-    SetFanMode(0)  # high
-    CoolerON() 
-    SetTemperature(-60) 
+    SetFanMode(FanMode)  # high
+    CoolerON()
+    SetTemperature(Temperature)
 
-    SetVSSpeed(1) # [1.13]
-    SetOutputAmplifier(0)   # electron multiplication
-    SetHSSpeed(0, 0)   # 30MHz
-    SetPreAmpGain(1)  # Pre amp gain 2
-    SetBaselineClamp(1)   # Baseline clamp ON
+    SetVSSpeed(VSSpeed)  # [1.13]
+    SetOutputAmplifier(OutputAmplifier)   # electron multiplication
+    SetHSSpeed(0, HSSpeed)   # 30MHz
+    SetPreAmpGain(PreAmpGain)  # Pre amp gain 2
+    SetBaselineClamp(BaselineClamp)   # Baseline clamp ON
 
     SetImage(1, 1, 1, 1024, 1, 1024)  # full image
 
@@ -181,7 +190,7 @@ async def shutdown_cam():
     print("Waiting for temperature going above -20C")
     await wait_until_temperature_above(-20)
     task.cancel()
-    ShutDown() 
+    ShutDown()
 
 
 if __name__ == '__main__':

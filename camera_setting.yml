@@ -1,0 +1,69 @@
+---
+ExposureTime: 1e-3
+
+# VSSpeed 
+# 0: 0.6 
+# 1: 1.13
+# 2: 2.2
+# 3: 4.33
+VSSpeed: 1
+
+# HSSpeed (for only EM gain)
+# 0: 30MHz
+# 1: 20MHz
+# 2: 10MHz
+# 3: 1MHz
+HSSpeed: 0
+
+# EMCCDGain
+# Valid value 0 - 255
+# More gain is not used in this lab 
+EMCCDGain: 2
+
+External start:
+  acq_mode : 3
+  trig_mode : 6
+  KineticCycleTime: 50e-3 # Time between each fire 
+  NumKinetics: 2  # Total number of firings; first image will be streaked 
+
+Internal:
+  acq_mode : 5
+  trig_mode : 0
+  KineticCycleTime: 55e-3 
+  NumKinetics: 1
+
+External:
+  acq_mode : 5
+  trig_mode : 1
+  KineticCycleTime: 0
+  NumKinetics: 1
+  
+
+# ---- It is not recommended to change any of the line below ----
+# They are included merely for completeness 
+
+
+# OutputAmplifier 
+# 0: EM gain 
+# 1: conventional 
+OutputAmplifier: 0
+
+# PreAmpGain
+# 0: Gain 1
+# 1: Gain 2
+PreAmpGain: 1
+
+# Temperature
+Temperature: -60
+
+# FanMode
+# 0: high  
+FanMode: 0
+
+# ReadMode 
+# 4: Image
+ReadMode: 4
+
+ShutterOpenTime: 0
+ShutterCloseTime: 0
+...

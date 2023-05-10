@@ -40,6 +40,7 @@ class MyTk(Tk):
 modes = {'internal': real_time, 'external': external_trig,
          'external start': external_start}
 
+exported_funcs = {}
 
 def draw_tk():
     # Create an instance of Tkinter frame or window
@@ -68,36 +69,39 @@ def draw_tk():
 
     # Set title of tkinter frame
     win.title('Andor Camera Terminal')
+    exported_funcs['internal']  = start('internal')
+    exported_funcs['external']  = start('external')
+    exported_funcs['external start']  = start('external start')
+    exported_funcs['stop']  = stop
 
     buttons = [
         Button(win, text='Internal', font=(None, 14),
-               command=start('internal'), state=DISABLED),
+               command=exported_funcs['internal'], state=DISABLED),
         Button(win, text='External', font=(None, 14),
-               command=start('external'), state=DISABLED),
+               command=exported_funcs['external'], state=DISABLED),
         Button(win, text='External start', font=(None, 14),
-               command=start('external start'), state=DISABLED),
-        Button(win, text='Stop', font=(None, 14), command=stop),
+               command=exported_funcs['external start'], state=DISABLED),
+        Button(win, text=exported_funcs['stop'], font=(None, 14), command=stop),
     ]
     for i, b in enumerate(buttons):
         b.grid(row=0, column=i, sticky=NSEW)
 
-    banners = [Label(win, font=(None, 10,)) for _ in range(5)]
+    banners = [Label(win, font=(None, 10,)) for _ in range(7)]
     for i, b in enumerate(banners):
         b.grid(row=i+2, columnspan=4, sticky=W)
+    banners[0]['text'] = 'Initializing camera...'
 
     async def update_banner():
+        while not CamStatus.status:
+            await asyncio.sleep(1)
         while True:
-            if not CamStatus.status:
-                banners[0]['text'] = 'Initializing camera...'
-                banners[1]['text'] = ''
-                banners[2]['text'] = ''
-                banners[3]['text'] = ''
-            else:
-                banners[0]['text'] = f'Current Temperature: {CamStatus.cam_temp}'
-                banners[1]['text'] = f'FPS: {CamStatus.FPS}'
-                banners[2]['text'] = f'Last spooling file name: {CamStatus.fname}'
-                banners[3]['text'] = f'Temp code: {CamStatus.temp_code}'
-                banners[4]['text'] = f'Status code: {CamStatus.status}'
+            banners[0]['text'] = f'Current Temperature: {CamStatus.cam_temp}'
+            banners[1]['text'] = f'FPS: {CamStatus.FPS}'
+            banners[2]['text'] = f'Exposure time: {CamStatus.exposure_time}'
+            banners[3]['text'] = f'EMCCD gain: {CamStatus.emccd_gain}'
+            banners[4]['text'] = f'Last spooling file name: {CamStatus.fname}'
+            banners[5]['text'] = f'Temp code: {CamStatus.temp_code}'
+            banners[6]['text'] = f'Status code: {CamStatus.status}'
             await asyncio.sleep(1)
 
     async def update_clickables():
