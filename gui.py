@@ -81,7 +81,7 @@ def draw_tk():
                command=exported_funcs['external'], state=DISABLED),
         Button(win, text='External start', font=(None, 14),
                command=exported_funcs['external start'], state=DISABLED),
-        Button(win, text=exported_funcs['stop'], font=(None, 14), command=stop),
+        Button(win, text='Stop', font=(None, 14), command=exported_funcs['stop']),
     ]
     for i, b in enumerate(buttons):
         b.grid(row=0, column=i, sticky=NSEW)
