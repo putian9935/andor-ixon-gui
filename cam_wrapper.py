@@ -131,6 +131,7 @@ def set_acquisition(acq_mode, trig_mode, KineticCycleTime=0, ExposureTime=1e-3, 
         traceback.print_exc()
     finally:
         AbortAcquisition()
+        SetShutterEx(1, 2, ShutterOpenTime, ShutterCloseTime, 2)
 
 
 async def real_time(spool=False, get_fname=None):

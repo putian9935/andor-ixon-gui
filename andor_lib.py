@@ -15,7 +15,7 @@ def _GetAvailableCamera():
 
     def ret():
         x = c_long()
-        err = f(pointer(x))
+        err = f(byref(x))
 
         if err != 20002:
             raise RuntimeError("Error code: %d" % err)
@@ -59,7 +59,7 @@ def _GetTemperature():
 
     def ret():
         temp = c_int()
-        err = f(pointer(temp))
+        err = f(byref(temp))
         return temp.value, err
     return ret
 
@@ -100,7 +100,7 @@ def _GetNumberVSSpeeds():
 
     def ret():
         speeds = c_int()
-        err = f(pointer(speeds))
+        err = f(byref(speeds))
         return speeds.value, err
     return ret
 
@@ -112,7 +112,7 @@ def _GetVSSpeed():
 
     def ret(index):
         speed = c_float()
-        err = f(index, pointer(speed))
+        err = f(index, byref(speed))
         return speed.value, err
     return ret
 
@@ -136,7 +136,7 @@ def _GetFastestRecommendedVSSpeed():
     def ret():
         index = c_int()
         speed = c_float()
-        err = f(pointer(index), pointer(speed))
+        err = f(byref(index), byref(speed))
         return index, speed, err
     return ret
 
@@ -148,7 +148,7 @@ def _GetNumberVSSpeeds():
 
     def ret():
         speeds = c_int()
-        err = f(pointer(speeds))
+        err = f(byref(speeds))
         return speeds.value, err
     return ret
 
@@ -160,7 +160,7 @@ def _GetVSSpeed():
 
     def ret(index):
         speed = c_float()
-        err = f(index, pointer(speed))
+        err = f(index, byref(speed))
         return speed.value, err
     return ret
 
@@ -183,7 +183,7 @@ def _GetNumberADChannels():
 
     def ret():
         channels = c_int()
-        err = f(pointer(channels))
+        err = f(byref(channels))
         return channels.value, err
     return ret
 
@@ -195,7 +195,7 @@ def _GetNumberAmp():
 
     def ret():
         amp = c_int()
-        err = f(pointer(amp))
+        err = f(byref(amp))
         return amp.value, err
     return ret
 
@@ -207,7 +207,7 @@ def _GetBitDepth():
 
     def ret(channel):
         depth = c_int()
-        err = f(channel, pointer(depth))
+        err = f(channel, byref(depth))
         return depth.value, err
     return ret
 
@@ -230,7 +230,7 @@ def _GetNumberHSSpeeds():
 
     def ret(channel, typ):
         speeds = c_int()
-        err = f(channel, typ, pointer(speeds))
+        err = f(channel, typ, byref(speeds))
         return speeds.value, err
     return ret
 
@@ -242,7 +242,7 @@ def _GetHSSpeed():
 
     def ret(channel, typ, index):
         speed = c_float()
-        err = f(channel, typ, index, pointer(speed))
+        err = f(channel, typ, index, byref(speed))
         return speed.value, err
     return ret
 
@@ -265,7 +265,7 @@ def _GetNumberPreAmpGains():
 
     def ret():
         no_gains = c_int()
-        err = f(pointer(no_gains))
+        err = f(byref(no_gains))
         return no_gains.value, err
     return ret
 
@@ -277,7 +277,7 @@ def _GetPreAmpGain():
 
     def ret(index):
         gain = c_float()
-        err = f(index, pointer(gain))
+        err = f(index, byref(gain))
         return gain.value, err
     return ret
 
@@ -300,7 +300,7 @@ def _GetRegisterDump():
 
     def ret():
         mode = c_int()
-        err = f(pointer(mode))
+        err = f(byref(mode))
         return mode.value, err
     return ret
 
@@ -422,7 +422,7 @@ def _GetKeepCleanTime():
 
     def ret():
         KeepCleanTime = c_float()
-        err = f(pointer(KeepCleanTime))
+        err = f(byref(KeepCleanTime))
         return KeepCleanTime.value, err
     return ret
 
@@ -498,7 +498,7 @@ def _GetStatus():
 
     def ret():
         status = c_int()
-        err = f(pointer(status))
+        err = f(byref(status))
         return status.value, err
     return ret
 
@@ -522,7 +522,7 @@ def _GetNumberAvailableImages():
     def ret():
         first = c_int()
         last = c_int()
-        err = f(pointer(first), pointer(last))
+        err = f(byref(first), byref(last))
         return first.value, last.value, err
     return ret
 
@@ -584,7 +584,7 @@ def _GetImages():
         validfirst = c_uint()
         validlast = c_uint()
         err = f(first, last, arr, (1024*1024*(last-first+1)),
-                pointer(validfirst), pointer(validlast))
+                byref(validfirst), byref(validlast))
         return img_buf, validfirst.value, validlast.value, err
     return ret
 
