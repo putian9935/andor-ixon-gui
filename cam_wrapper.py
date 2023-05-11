@@ -171,15 +171,15 @@ def init_cam(FanMode=0, Temperature=-60, VSSpeed=1, OutputAmplifier=0, HSSpeed=0
             "In correct camera count: cam_cnt != 1. Did you\n1. forget to turn on or connect the camera;\n2. have another Andor software running.")
 
     assert Initialize() == SUCCESS
-    SetFanMode(FanMode)  # high
+    SetFanMode(FanMode)  
     CoolerON()
     SetTemperature(Temperature)
 
-    SetVSSpeed(VSSpeed)  # [1.13]
-    SetOutputAmplifier(OutputAmplifier)   # electron multiplication
-    SetHSSpeed(0, HSSpeed)   # 30MHz
-    SetPreAmpGain(PreAmpGain)  # Pre amp gain 2
-    SetBaselineClamp(BaselineClamp)   # Baseline clamp ON
+    SetVSSpeed(VSSpeed)
+    SetOutputAmplifier(OutputAmplifier)  
+    SetHSSpeed(0, HSSpeed)
+    SetPreAmpGain(PreAmpGain) 
+    SetBaselineClamp(BaselineClamp)  
 
     SetImage(1, 1, 1, 1024, 1, 1024)  # full image
 

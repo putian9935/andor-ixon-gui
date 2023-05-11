@@ -62,7 +62,7 @@ def draw_tk():
             enable_spool['state'] = DISABLED
             if win.spooling.get():
                 win.job = asyncio.create_task(
-                    modes[key](True, get_name_from_time))
+                    modes[key](True, spool_name_func))
             else:
                 win.job = asyncio.create_task(modes[key]())
         return ret
@@ -122,5 +122,5 @@ async def main():
     await win.task[0]
     await shutdown_cam()
 
-
+spool_name_func = get_name_from_time 
 asyncio.run(main())

@@ -7,6 +7,7 @@ def setup_backend():
     mpl.use('TkAgg')
 
 def prepare_image(x : np.ndarray):
+    axes_image = plt.imshow(x)
     return axes_image 
 
 def update_image(axes_image):
@@ -21,7 +22,7 @@ if __name__ == '__main__':
     p[3] = 6
 
     setup_backend()    
-    axes_image = prepare_image(x)
+    axes_image = prepare_image(x.reshape(1024, 1024))
 
     import time 
     tt = time.perf_counter()
