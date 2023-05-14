@@ -8,7 +8,7 @@ from image import *
 import logging
 logging.basicConfig(filename='Example log', level=logging.INFO)
 
-from parse_setting import parse_setting
+from .parse_setting import parse_setting
 
 class CamStatus:
     cam_temp = 100

@@ -56,22 +56,25 @@ def draw_tk():
         win.job.cancel()
         enable_spool['state'] = ACTIVE
 
-    def start(key: str):
+    def start(key: str, spooling=True, spool_func=None):
         def ret():
+            nonlocal spool_func
             stop()
             enable_spool['state'] = DISABLED
-            if win.spooling.get():
+            if not spool_func:
+                spool_func = get_name_from_time
+            if win.spooling.get() or spooling:
                 win.job = asyncio.create_task(
-                    modes[key](True, spool_name_func))
+                    modes[key](spooling, spool_func))
             else:
                 win.job = asyncio.create_task(modes[key]())
         return ret
 
     # Set title of tkinter frame
     win.title('Andor Camera Terminal')
-    exported_funcs['internal']  = start('internal')
-    exported_funcs['external']  = start('external')
-    exported_funcs['external start']  = start('external start')
+    exported_funcs['internal']  = lambda *args: start('internal', *args)
+    exported_funcs['external']  = lambda *args: start('external', *args)
+    exported_funcs['external start']  = lambda *args: start('external start', *args)
     exported_funcs['stop']  = stop
 
     buttons = [
@@ -91,9 +94,14 @@ def draw_tk():
         b.grid(row=i+2, columnspan=4, sticky=W)
     banners[0]['text'] = 'Initializing camera...'
 
-    async def update_banner():
+    async def wait_until_cam_initialized():
         while not CamStatus.status:
-            await asyncio.sleep(1)
+            await asyncio.sleep(.2)
+        while CamStatus.temp_code == 20013:
+            await asyncio.sleep(.2)
+            
+    async def update_banner():
+        await wait_until_cam_initialized()
         while True:
             banners[0]['text'] = f'Current Temperature: {CamStatus.cam_temp}'
             banners[1]['text'] = f'FPS: {CamStatus.FPS}'
@@ -105,8 +113,7 @@ def draw_tk():
             await asyncio.sleep(1)
 
     async def update_clickables():
-        while not CamStatus.status:
-            await asyncio.sleep(.2)
+        await wait_until_cam_initialized()
         for b in buttons:
             b['state'] = ACTIVE
         enable_spool['state'] = ACTIVE
@@ -121,6 +128,7 @@ async def main():
     # wait gui close
     await win.task[0]
     await shutdown_cam()
-
-spool_name_func = get_name_from_time 
-asyncio.run(main())
+    
+if __name__ == '__main__':
+    spool_name_func = get_name_from_time 
+    asyncio.run(main())
